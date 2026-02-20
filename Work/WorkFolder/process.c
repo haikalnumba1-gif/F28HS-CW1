@@ -62,6 +62,7 @@ Image* load_image(const char* filename)
     //Allocating memory for array of pixels.
     img->pixelArray = malloc((img->width)*(img->height)*sizeof(Pixel));
 
+    //Read pixel values from file.
     printf("Reading Progress: ");
     for(unsigned i=0; i<((img->width)*(img->height)) ; i++)
     {
