@@ -132,16 +132,24 @@ bool save_image(Image *img, char *filename)
     return true;
 }
 
-/*For testing.*/
-int main() {
-
-    Image* img;
-
-    img = load_image("bars.hqhex");
-    if(img == NULL){
-        printf("Image empty.\n");
+/* Deep copy of an image. On error, returns NULL. */
+Image *copy_image(Image *source)
+{
+    if (source == NULL) {//Err Msg.
+        fprintf(stderr, "Source is empty/not loaded. \n");
+        return NULL;
     }
-    else {
+
+    //Allocate memory for copy.
+    Image* imgCopy = malloc(sizeof(Image));
+    *imgCopy = *source;
+    return imgCopy;
+}
+
+
+/*Tester function*/
+void printImgDetails(Image* img)
+{
     printf("File Type: %s. \n",img->fileType);
     printf("File Width: %u. \n",img->width);
     printf("File Height: %u. \n",img->height);
@@ -149,14 +157,25 @@ int main() {
     printf("R: %s\n", img->pixelArray[0].red);
     printf("G: %s\n", img->pixelArray[0].green);
     printf("B: %s\n", img->pixelArray[0].blue);
+}
 
-    if(save_image(img, "dummy.hqhex")){
-        printf("Image saved!\n");
-    }
-    else{
-        printf("Image failed to save!\n");
-    };
+/*For testing.*/
+int main() {
 
+    Image* img;
+    Image* img2;
+
+    //Test loadimg.
+    img = load_image("bars.hqhex");
+    if(img == NULL)
+        printf("Image empty.\n");
+    else {
+        img2 = copy_image(img);
+        printImgDetails(img2);
+        if(save_image(img2, "dummy.hqhex")) 
+            printf("Image saved!\n");
+        else 
+            printf("Image failed to save!\n");
     };
 
     free_image(img);
