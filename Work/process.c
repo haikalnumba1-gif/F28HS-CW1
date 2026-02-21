@@ -5,14 +5,16 @@
 
 /* A singular pixel within an image. */
 typedef struct {
-    char red[4];
-    char green[4];
-    char blue[4];
+    //String of 4 hexadecimal characters + EOS of "/0".
+    char red[6];
+    char green[6];
+    char blue[6];
 } Pixel; 
 
 /* An image loaded from a file. */
 typedef struct {
-    char fileType[10];
+    //Max file name of 30 characters.
+    char fileType[30];
     unsigned width;
     unsigned height;
     unsigned nvalues;
@@ -22,6 +24,11 @@ typedef struct {
 /* Free an image from memory. */
 void free_image(Image *img)
 {
+    //Free pixelArray.
+    free(img->pixelArray);
+    img->pixelArray = NULL;
+
+    //Free img.
     free(img);
     img = NULL;
     printf("Memory freed.\n");
@@ -59,7 +66,6 @@ Image* load_image(char* filename)
         return NULL;
     };
 
-    
     //Allocating memory for array of pixels.
     img->pixelArray = malloc((img->width)*(img->height)*sizeof(Pixel));
 
@@ -68,8 +74,10 @@ Image* load_image(char* filename)
     for(unsigned i=0; i<((img->width)*(img->height)) ; i++)
     {
         fscanf(f,"%s",img->pixelArray[i].red);
-        fscanf(f,"%s",img->pixelArray[i].blue);
         fscanf(f,"%s",img->pixelArray[i].green);
+        fscanf(f,"%s",img->pixelArray[i].blue);
+        
+        //Progress indicator.
         if(i%(((img->width)*(img->height))/10) == 0 || i==(img->width)*(img->height)){
             printf("*");
         };
@@ -91,8 +99,36 @@ Image* load_image(char* filename)
 /* Write img to file filename. Return true on success, false on error. */
 bool save_image(Image *img, char *filename)
 {
-    
+    //Open image file. Write only, will override files.
+    FILE *f = fopen(filename, "w");
+    if (f == NULL) { //Err Msg.
+        fprintf(stderr, "File %s could not be opened.\n", filename);
+        perror("Error");
+        return NULL;
+    };
 
+    //Write file headers.
+    fprintf(f,"%s ",img->fileType);
+    fprintf(f,"%u ", img->width);
+    fprintf(f,"%u ", img->height);
+    fprintf(f,"%u ", img->nvalues);
+
+    //Write pixel values.
+    printf("Saving Progress: ");
+    for(unsigned i=0; i<((img->width)*(img->height)) ; i++)
+    {
+        fprintf(f,"%s ",img->pixelArray[i].red);
+        fprintf(f,"%s ",img->pixelArray[i].green);
+        fprintf(f,"%s ",img->pixelArray[i].blue);
+
+        //Progress indicator.
+        if(i%(((img->width)*(img->height))/10) == 0 || i==(img->width)*(img->height)){
+            printf("*");
+        };
+    };
+    printf("\n");
+
+    fclose(f);
     return true;
 }
 
@@ -110,6 +146,17 @@ int main() {
     printf("File Width: %u. \n",img->width);
     printf("File Height: %u. \n",img->height);
     printf("File nValue: %u. \n",img->nvalues);
+    printf("R: %s\n", img->pixelArray[0].red);
+    printf("G: %s\n", img->pixelArray[0].green);
+    printf("B: %s\n", img->pixelArray[0].blue);
+
+    if(save_image(img, "dummy.hqhex")){
+        printf("Image saved!\n");
+    }
+    else{
+        printf("Image failed to save!\n");
+    };
+
     };
 
     free_image(img);
