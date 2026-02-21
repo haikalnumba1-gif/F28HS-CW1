@@ -1,0 +1,2 @@
+To create PPM image:
+python3 hqconvert -f PPM [input] [output]

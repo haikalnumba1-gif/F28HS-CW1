@@ -147,6 +147,7 @@ Image *copy_image(Image *source)
 }
 
 
+
 /*Tester function*/
 void printImgDetails(Image* img)
 {
