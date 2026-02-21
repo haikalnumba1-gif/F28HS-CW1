@@ -1,3 +1,4 @@
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,7 +28,7 @@ void free_image(Image *img)
 }
 
 /* Loads an image file to memory. Return NULL on failure.*/
-Image* load_image(const char* filename)
+Image* load_image(char* filename)
 {
     //Open image file. Read only.
     FILE *f = fopen(filename, "r");
@@ -85,6 +86,14 @@ Image* load_image(const char* filename)
         return NULL;
     }
     return img;
+}
+
+/* Write img to file filename. Return true on success, false on error. */
+bool save_image(Image *img, char *filename)
+{
+    
+
+    return true;
 }
 
 /*For testing.*/
