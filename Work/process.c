@@ -5,10 +5,10 @@
 
 /* A singular pixel within an image. */
 typedef struct {
-    //String of 4 hexadecimal characters + EOS of "/0".
-    char red[6];
-    char green[6];
-    char blue[6];
+    //Stores hexadecimal code.
+    unsigned red;
+    unsigned green;
+    unsigned blue;
 } Pixel; 
 
 /* An image loaded from a file. */
@@ -21,17 +21,18 @@ typedef struct {
     Pixel* pixelArray;
 } Image;
 
-/* Free an image from memory. */
-void free_image(Image *img)
+/* Free an image from memory. *
+* Pass the image as an address. E.g: &img */
+void free_image(Image **img)
 {
-    //Free pixelArray.
-    free(img->pixelArray);
-    img->pixelArray = NULL;
-
-    //Free img.
-    free(img);
-    img = NULL;
-    printf("Memory freed.\n");
+    if(*img == NULL)
+        printf("No memory to be freed.\n");
+    else{
+        //Free img.
+        free(*img);
+        *img = NULL;
+        printf("Memory freed.\n");
+    }
 }
 
 /* Loads an image file to memory. Return NULL on failure.*/
@@ -73,16 +74,16 @@ Image* load_image(char* filename)
     printf("Reading Progress: ");
     for(unsigned i=0; i<((img->width)*(img->height)) ; i++)
     {
-        fscanf(f,"%s",img->pixelArray[i].red);
-        fscanf(f,"%s",img->pixelArray[i].green);
-        fscanf(f,"%s",img->pixelArray[i].blue);
+        fscanf(f,"%x",&img->pixelArray[i].red);
+        fscanf(f,"%x",&img->pixelArray[i].green);
+        fscanf(f,"%x",&img->pixelArray[i].blue);
         
         //Progress indicator.
         if(i%(((img->width)*(img->height))/10) == 0 || i==(img->width)*(img->height)){
             printf("*");
         };
     };
-    printf("\n");
+    printf("\nReading Complete.\n");
 
     //Close the file.
     fclose(f);
@@ -104,7 +105,7 @@ bool save_image(Image *img, char *filename)
     if (f == NULL) { //Err Msg.
         fprintf(stderr, "File %s could not be opened.\n", filename);
         perror("Error");
-        return NULL;
+        return false;
     };
 
     //Write file headers.
@@ -117,16 +118,17 @@ bool save_image(Image *img, char *filename)
     printf("Saving Progress: ");
     for(unsigned i=0; i<((img->width)*(img->height)) ; i++)
     {
-        fprintf(f,"%s ",img->pixelArray[i].red);
-        fprintf(f,"%s ",img->pixelArray[i].green);
-        fprintf(f,"%s ",img->pixelArray[i].blue);
+        fprintf(f,"%x ",img->pixelArray[i].red);
+        fprintf(f,"%x ",img->pixelArray[i].green);
+        fprintf(f,"%x ",img->pixelArray[i].blue);
 
         //Progress indicator.
         if(i%(((img->width)*(img->height))/10) == 0 || i==(img->width)*(img->height)){
             printf("*");
         };
     };
-    printf("\n");
+    printf("\nSaving Complete.\n");
+    printf("Saved to: %s.\n",filename);
 
     fclose(f);
     return true;
@@ -155,16 +157,16 @@ void printImgDetails(Image* img)
     printf("File Width: %u. \n",img->width);
     printf("File Height: %u. \n",img->height);
     printf("File nValue: %u. \n",img->nvalues);
-    printf("R: %s\n", img->pixelArray[0].red);
-    printf("G: %s\n", img->pixelArray[0].green);
-    printf("B: %s\n", img->pixelArray[0].blue);
+    printf("R: %x\n", img->pixelArray[0].red);
+    printf("G: %x\n", img->pixelArray[0].green);
+    printf("B: %x\n", img->pixelArray[0].blue);
 }
 
 /*For testing.*/
 int main() {
 
-    Image* img;
-    Image* img2;
+    Image* img = NULL;
+    Image* img2 = NULL;
 
     //Test loadimg.
     img = load_image("bars.hqhex");
@@ -173,12 +175,10 @@ int main() {
     else {
         img2 = copy_image(img);
         printImgDetails(img2);
-        if(save_image(img2, "dummy.hqhex")) 
-            printf("Image saved!\n");
-        else 
-            printf("Image failed to save!\n");
+        save_image(img2, "dummy.hqhex");
     };
 
-    free_image(img);
+    free_image(&img);
+    free_image(&img2);
 
 };
