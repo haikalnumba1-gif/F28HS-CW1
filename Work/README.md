@@ -1,18 +1,36 @@
 Author: Haikal Hafiz
 Task Entry: H00493444: HQHEX REFLECT HIST
 
-HQHEX Data:
-1. width - Integer number of columns.
-2. height - Integer number of rows.
-3. nvalues - Integer number of values per pixel. Always 3 (RGB).
-Image data follows header.
+To compile and build program using terminal:
+>> CMD make
 
-Pixel Data:
-1. Each pixel is 3 unsigned 16-bit value.
-2. Each pixel is stored as 12 hexadecimal digits (A-F may be upper/lower case).
-3. Maximum individual RGB value: 65535
-4. Read left to right, top to bottom.
+To remove built program:
+>> CMD: make clean
 
+To run program:
+>> CMD: sudo ./process FILEIN FILEOUT
 
-Example of a HQHEX file:
-HQHEX 400 300 3 ffff ffff ffff...More
+( FILEIN ) 
+- Mandatory - 
+The input filename.
+Must already exist.
+
+( FILEOUT ) 
+- Mandatory - 
+The output filename. 
+If exists: Overried file.
+If not exists: Create file.
+
+To convert hqhex to ppm viewable image:
+>> CMD: python3 hqconvert -f PPM FILEIN FILEOUT
+
+( FILEIN ) 
+- Mandatory - 
+The input filename.
+Must already exist.
+
+( FILEOUT ) 
+- Mandatory - 
+The output filename. 
+If exists: Overried file.
+If not exists: Create file.
