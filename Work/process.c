@@ -21,6 +21,31 @@ typedef struct {
     Pixel* pixelArray;
 } Image;
 
+/*Adds 2 hexadecimal numbers. Caps max output: 0xffff.*/
+unsigned sumHexa(unsigned h1, unsigned h2){
+    unsigned h3 = h1 + h2;
+    if(h3 > 0xffff)
+        h3 = 0xffff;
+    return h3;
+}
+
+/*Adds the RGB values of 2 pixels.*/
+Pixel sumPixel(Pixel p1, Pixel p2){
+    Pixel p3;
+    p3.red = sumHexa(p1.red,p2.red);
+    p3.green = sumHexa(p1.green,p2.green);
+    p3.blue = sumHexa(p1.blue,p2.blue);
+    return p3;
+}
+
+/*Finds the 1D array index 2D indexes.
+* row: 0 to height - 1 
+* col: 0 to width -1 
+* totCol = width */
+unsigned seekIndex(unsigned row, unsigned col, unsigned totCol){
+    return (row*totCol) + col;
+}
+
 /* Free an image from memory. *
 * Pass the image as an address. E.g: &img */
 void free_image(Image **img)
@@ -148,24 +173,44 @@ Image *copy_image(Image *source)
     return imgCopy;
 }
 
+Image *apply_reflect(Image *source){
 
+    if(source == NULL){
+        printf("Image is null.\n");
+        return NULL;
+    };
+    
+    Image* newImg = copy_image(source);
 
+    unsigned buffIndex;//Current index.
+    unsigned buffVerIndex;//Vertically opposite index.
+    
+    Pixel buffPix;
+    
+    unsigned h = source->height;
+    unsigned w = source->width;
 
-/*Adds 2 hexadecimal numbers. Caps max output: 0xffff.*/
-unsigned sumHexa(unsigned h1, unsigned h2){
-    unsigned h3 = h1 + h2;
-    if(h3 > 0xffff)
-        h3 = 0xffff;
-    return h3;
+    for(unsigned i=0 ; i < (h-1)/2 ; i++){//Row searcher
+        for(unsigned j=0 ; j < (w-1) ; j++){//Column searcher
+
+            //Find indexes.
+            buffIndex = seekIndex(i,j,w);
+            buffVerIndex = seekIndex(h-1-i,j,w);
+
+            //Add pixels.
+            buffPix = sumPixel(source->pixelArray[buffIndex],source->pixelArray[buffVerIndex]);
+            
+            //Override pixels.
+            newImg->pixelArray[buffIndex] = buffPix;
+            newImg->pixelArray[buffVerIndex] = buffPix;
+        }
+    }
+
+    return newImg;
+
 }
 
-/*Finds the 1D array index 2D indexes.
-* row: 0 to height - 1 
-* col: 0 to width -1 
-* totCol = width */
-unsigned seekIndex(unsigned row, unsigned col, unsigned totCol){
-    return (row*totCol) + col;
-}
+
 
 /*Tester function*/
 void printImgDetails(Image* img)
@@ -192,8 +237,8 @@ int main() {
     if(img == NULL)
         printf("Image empty.\n");
     else {
-        img2 = copy_image(img);
-        printImgDetails(img2);
+        img2 = apply_reflect(img);
+        save_image(img2, "reflectBars.hqhex");
     };
 
     free_image(&img);
