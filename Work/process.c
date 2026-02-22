@@ -150,6 +150,23 @@ Image *copy_image(Image *source)
 
 
 
+
+/*Adds 2 hexadecimal numbers. Caps max output: 0xffff.*/
+unsigned sumHexa(unsigned h1, unsigned h2){
+    unsigned h3 = h1 + h2;
+    if(h3 > 0xffff)
+        h3 = 0xffff;
+    return h3;
+}
+
+/*Finds the 1D array index 2D indexes.
+* row: 0 to height - 1 
+* col: 0 to width -1 
+* totCol = width */
+unsigned seekIndex(unsigned row, unsigned col, unsigned totCol){
+    return (row*totCol) + col;
+}
+
 /*Tester function*/
 void printImgDetails(Image* img)
 {
@@ -167,6 +184,8 @@ int main() {
 
     Image* img = NULL;
     Image* img2 = NULL;
+    unsigned buff1;
+    unsigned buff2;
 
     //Test loadimg.
     img = load_image("bars.hqhex");
@@ -175,7 +194,6 @@ int main() {
     else {
         img2 = copy_image(img);
         printImgDetails(img2);
-        save_image(img2, "dummy.hqhex");
     };
 
     free_image(&img);
