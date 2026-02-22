@@ -116,6 +116,7 @@ Image* load_image(char* filename)
         //Progress indicator.
         if(i%(((img->width)*(img->height))/10) == 0 || i==(img->width)*(img->height)){
             printf("*");
+            fflush(stdout);
         };
     };
     printf("\nReading Complete.\n");
@@ -163,6 +164,7 @@ bool save_image(Image *img, char *filename)
         //Progress indicator.
         if(i%(((img->width)*(img->height))/10) == 0 || i==(img->width)*(img->height)){
             printf("*");
+            fflush(stdout);
         };
     };
     printf("\nSaving Complete.\n");
@@ -230,7 +232,8 @@ Image *apply_reflect(Image *source){
 
 }
 
-
+/* [ Feature Function ]
+* Prints out all used RGB values.*/
 bool apply_hist(Image *source){
 
     if(source == NULL){//Err Msg...
@@ -239,72 +242,67 @@ bool apply_hist(Image *source){
     };
 
     //64 possible combinations of 4 hexadecimal digits.
-    unsigned arrRed[64] = {0};
-    unsigned arrGreen[64] = {0};
-    unsigned arrBlue[64] = {0};
-    unsigned counter = 0;
+    unsigned arrRed[0xffff] = {0};
+    unsigned arrGreen[0xffff] = {0};
+    unsigned arrBlue[0xffff] = {0};
 
     Pixel buffPix;
     
     unsigned h = source->height;
     unsigned w = source->width;
 
+    //Searching...
+    printf("Searching Progress:");
     for(unsigned i=0 ; i < (w*h)-1 ; i++){//Pixel searcher
+
+        //Progress indicator.
+        if(i%((w*h)/10) == 0 || i==(w*h)){
+            printf("*");
+            fflush(stdout);
+        };
 
         buffPix = source->pixelArray[i];
 
         for(unsigned a=0x0 ; a <= 0xffff ; a++){//Red checker.
             if(a == buffPix.red){
-                arrRed[counter]++;
+                arrRed[a]++;
                 break;
             }
-            counter++;
         }
-        counter = 0;
 
         for(unsigned a=0x0 ; a <= 0xffff ; a++){//Green checker.
             if(a == buffPix.green){
-                arrGreen[counter]++;
+                arrGreen[a]++;
                 break;
             }
-            counter++;
         }
-        counter = 0;
 
         for(unsigned a=0x0 ; a <= 0xffff ; a++){//Blue checker.
             if(a == buffPix.blue){
-                arrBlue[counter]++;
+                arrBlue[a]++;
                 break;
             }
-            counter++;
         }
-        counter = 0;
     }
+    printf("\nSearch Complete.\n");
 
-    //Printing
-
-    counter = 0;
+    //Printing...
     for(unsigned i=0x0 ; i < 0xffff ; i++){//Red printer.
-        if(arrRed[counter] != 0){
-            printf("Red Value %x: %u\n",i,arrRed[i]);
+        if(arrRed[i] != 0){
+            printf("Red Value %x: %u pixels\n",i,arrRed[i]);
         }
-        counter++;
     }
 
-    counter = 0;
     for(unsigned i=0x0 ; i < 0xffff ; i++){//Green printer.
-        if(arrGreen[counter] != 0){
-            printf("Green Value %x: %u\n",i,arrGreen[i]);
+        if(arrGreen[i] != 0){
+            printf("Green Value %x: %u pixels\n",i,arrGreen[i]);
         }
-        counter++;
     }
 
-    counter = 0;
     for(unsigned i=0x0 ; i < 0xffff ; i++){//Blue printer.
-        if(arrBlue[counter] != 0){
-            printf("Blue Value %x: %u\n",i,arrBlue[i]);
+        if(arrBlue[i] != 0){
+            printf("Blue Value %x: %u pixels\n",i,arrBlue[i]);
         }
-        counter++;
     }
 
     return true;
