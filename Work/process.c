@@ -69,7 +69,8 @@ void free_image(Image **img)
 
 /* [ Base Function ] 
 * Loads an image file to memory. 
-* Return NULL on failure.*/
+* Success: Returns an image.
+* Failure: Returns NULL.*/
 Image* load_image(char* filename)
 {
     //Open image file. Read only.
@@ -133,7 +134,8 @@ Image* load_image(char* filename)
 
 /* [ Base Function ]
 * Write img to file: filename. 
-* Return true on success, false on error. */
+* Success: Returns true.
+* Failure: Returns false. */
 bool save_image(Image *img, char *filename)
 {
     //Open image file. Write only, will override files.
@@ -172,7 +174,8 @@ bool save_image(Image *img, char *filename)
 
 /* [ Base Function ] 
 * Deep copy of an image. 
-* On error, returns NULL. */
+* Success: Returns copy of an image.
+* Failure: Returns NULL. */
 Image *copy_image(Image *source)
 {
     if (source == NULL) {//Err Msg.
@@ -187,7 +190,9 @@ Image *copy_image(Image *source)
 }
 
 /* [ Feature Function ]
-* Vertically reflects an image onto itself.*/
+* Vertically reflects an image onto itself.
+* Success: Returns new edited image.
+* Failure: Returns NULL. */
 Image *apply_reflect(Image *source){
 
     if(source == NULL){//Err Msg...
