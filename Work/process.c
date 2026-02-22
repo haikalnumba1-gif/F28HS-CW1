@@ -3,7 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* A singular pixel within an image. */
+/* [ Structure ] 
+* A singular pixel within an image. */
 typedef struct {
     //Stores hexadecimal code.
     unsigned red;
@@ -11,7 +12,8 @@ typedef struct {
     unsigned blue;
 } Pixel; 
 
-/* An image loaded from a file. */
+/* [ Structure ]
+* An image loaded from a file. */
 typedef struct {
     //Max file name of 30 characters.
     char fileType[30];
@@ -21,16 +23,19 @@ typedef struct {
     Pixel* pixelArray;
 } Image;
 
-/*Adds 2 hexadecimal numbers. Caps max output: 0xffff.*/
-unsigned sumHexa(unsigned h1, unsigned h2){
+/*[ Helper Function ]
+* Adds 2 hexadecimal numbers. 
+* Caps max output: 0xffff.*/
+static unsigned sumHexa(unsigned h1, unsigned h2){
     unsigned h3 = h1 + h2;
     if(h3 > 0xffff)
         h3 = 0xffff;
     return h3;
 }
 
-/*Adds the RGB values of 2 pixels.*/
-Pixel sumPixel(Pixel p1, Pixel p2){
+/*[ Helper Function ]
+* Adds the RGB values of 2 pixels.*/
+static Pixel sumPixel(Pixel p1, Pixel p2){
     Pixel p3;
     p3.red = sumHexa(p1.red,p2.red);
     p3.green = sumHexa(p1.green,p2.green);
@@ -38,15 +43,17 @@ Pixel sumPixel(Pixel p1, Pixel p2){
     return p3;
 }
 
-/*Finds the 1D array index 2D indexes.
+/* [ Helper Function ]
+* Finds the index in a contiguous 2D array.
 * row: 0 to height - 1 
 * col: 0 to width -1 
 * totCol = width */
-unsigned seekIndex(unsigned row, unsigned col, unsigned totCol){
+static unsigned seekIndex(unsigned row, unsigned col, unsigned totCol){
     return (row*totCol) + col;
 }
 
-/* Free an image from memory. *
+/* [ Base Function ]
+* Free an image from memory.
 * Pass the image as an address. E.g: &img */
 void free_image(Image **img)
 {
@@ -60,7 +67,9 @@ void free_image(Image **img)
     }
 }
 
-/* Loads an image file to memory. Return NULL on failure.*/
+/* [ Base Function ] 
+* Loads an image file to memory. 
+* Return NULL on failure.*/
 Image* load_image(char* filename)
 {
     //Open image file. Read only.
@@ -122,7 +131,9 @@ Image* load_image(char* filename)
     return img;
 }
 
-/* Write img to file filename. Return true on success, false on error. */
+/* [ Base Function ]
+* Write img to file: filename. 
+* Return true on success, false on error. */
 bool save_image(Image *img, char *filename)
 {
     //Open image file. Write only, will override files.
@@ -159,7 +170,9 @@ bool save_image(Image *img, char *filename)
     return true;
 }
 
-/* Deep copy of an image. On error, returns NULL. */
+/* [ Base Function ] 
+* Deep copy of an image. 
+* On error, returns NULL. */
 Image *copy_image(Image *source)
 {
     if (source == NULL) {//Err Msg.
@@ -173,9 +186,11 @@ Image *copy_image(Image *source)
     return imgCopy;
 }
 
+/* [ Feature Function ]
+* Vertically reflects an image onto itself.*/
 Image *apply_reflect(Image *source){
 
-    if(source == NULL){
+    if(source == NULL){//Err Msg...
         printf("Image is null.\n");
         return NULL;
     };
@@ -212,7 +227,8 @@ Image *apply_reflect(Image *source){
 
 
 
-/*Tester function*/
+/* [ Tester Function ] 
+* Prints image headers and first pixel.*/
 void printImgDetails(Image* img)
 {
     printf("File Type: %s. \n",img->fileType);
@@ -229,16 +245,14 @@ int main() {
 
     Image* img = NULL;
     Image* img2 = NULL;
-    unsigned buff1;
-    unsigned buff2;
 
     //Test loadimg.
-    img = load_image("bars.hqhex");
+    img = load_image("coffee.hqhex");
     if(img == NULL)
         printf("Image empty.\n");
     else {
         img2 = apply_reflect(img);
-        save_image(img2, "reflectBars.hqhex");
+        save_image(img2, "refCoffee.hqhex");
     };
 
     free_image(&img);
