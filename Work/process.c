@@ -231,6 +231,84 @@ Image *apply_reflect(Image *source){
 }
 
 
+bool apply_hist(Image *source){
+
+    if(source == NULL){//Err Msg...
+        printf("Image is null.\n");
+        return false;    
+    };
+
+    //64 possible combinations of 4 hexadecimal digits.
+    unsigned arrRed[64] = {0};
+    unsigned arrGreen[64] = {0};
+    unsigned arrBlue[64] = {0};
+    unsigned counter = 0;
+
+    Pixel buffPix;
+    
+    unsigned h = source->height;
+    unsigned w = source->width;
+
+    for(unsigned i=0 ; i < (w*h)-1 ; i++){//Pixel searcher
+
+        buffPix = source->pixelArray[i];
+
+        for(unsigned a=0x0 ; a <= 0xffff ; a++){//Red checker.
+            if(a == buffPix.red){
+                arrRed[counter]++;
+                break;
+            }
+            counter++;
+        }
+        counter = 0;
+
+        for(unsigned a=0x0 ; a <= 0xffff ; a++){//Green checker.
+            if(a == buffPix.green){
+                arrGreen[counter]++;
+                break;
+            }
+            counter++;
+        }
+        counter = 0;
+
+        for(unsigned a=0x0 ; a <= 0xffff ; a++){//Blue checker.
+            if(a == buffPix.blue){
+                arrBlue[counter]++;
+                break;
+            }
+            counter++;
+        }
+        counter = 0;
+    }
+
+    //Printing
+
+    counter = 0;
+    for(unsigned i=0x0 ; i < 0xffff ; i++){//Red printer.
+        if(arrRed[counter] != 0){
+            printf("Red Value %x: %u\n",i,arrRed[i]);
+        }
+        counter++;
+    }
+
+    counter = 0;
+    for(unsigned i=0x0 ; i < 0xffff ; i++){//Green printer.
+        if(arrGreen[counter] != 0){
+            printf("Green Value %x: %u\n",i,arrGreen[i]);
+        }
+        counter++;
+    }
+
+    counter = 0;
+    for(unsigned i=0x0 ; i < 0xffff ; i++){//Blue printer.
+        if(arrBlue[counter] != 0){
+            printf("Blue Value %x: %u\n",i,arrBlue[i]);
+        }
+        counter++;
+    }
+
+    return true;
+}
 
 /* [ Tester Function ] 
 * Prints image headers and first pixel.*/
@@ -256,8 +334,7 @@ int main() {
     if(img == NULL)
         printf("Image empty.\n");
     else {
-        img2 = apply_reflect(img);
-        save_image(img2, "refCoffee.hqhex");
+        apply_hist(img);
     };
 
     free_image(&img);

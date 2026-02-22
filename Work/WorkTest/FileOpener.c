@@ -21,8 +21,14 @@ int fileOpen(const char *filename) {
     fprintf(stderr, "File %s has been closed.\n", filename);
 };
 
+void printHexa(){
+    for(unsigned a = 0x0 ; a <= 0xffff; a++){
+        printf("%x ", a);
+    }
+}
+
 int main() {
 
-    fileOpen("coffee.hqhex");
+    printHexa();
 
 };
