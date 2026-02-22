@@ -85,10 +85,22 @@ Image* load_image(char* filename)
     Image* img = malloc(sizeof(Image));
 
     //Reading file headers.
-    fscanf(f,"%s", img->fileType);
-    fscanf(f,"%u", &img->width);
-    fscanf(f,"%u", &img->height);
-    fscanf(f,"%u", &img->nvalues);
+    if(fscanf(f,"%s", img->fileType) == 0){
+        printf("Failed header read: filetype.\n");
+        return NULL;
+    }
+    if(fscanf(f,"%u", &img->width) == 0){
+        printf("Failed header read: width.\n");
+        return NULL;
+    }
+    if(fscanf(f,"%u", &img->height) == 0){
+        printf("Failed header read: height.\n");
+        return NULL;
+    }
+    if(fscanf(f,"%u", &img->nvalues) == 0){
+        printf("Failed header read: nvalues.\n");
+        return NULL;
+    }
 
     //Checking file header validity.
     if (strcmp(img->fileType,"HQHEX")!=0){//Err Msg.
@@ -109,9 +121,18 @@ Image* load_image(char* filename)
     printf("Reading Progress: ");
     for(unsigned i=0; i<((img->width)*(img->height)) ; i++)
     {
-        fscanf(f,"%x",&img->pixelArray[i].red);
-        fscanf(f,"%x",&img->pixelArray[i].green);
-        fscanf(f,"%x",&img->pixelArray[i].blue);
+        if(fscanf(f,"%x",&img->pixelArray[i].red) == 0){
+            printf("Failed red pixel read: %u.\n",i);
+            return NULL;
+        } 
+        if(fscanf(f,"%x",&img->pixelArray[i].green) == 0){
+            printf("Failed green pixel read: %u.\n",i);
+            return NULL;
+        }
+        if(fscanf(f,"%x",&img->pixelArray[i].blue) == 0){
+            printf("Failed blue pixel read: %u.\n",i);
+            return NULL;
+        }
         
         //Progress indicator.
         if(i%(((img->width)*(img->height))/10) == 0 || i==(img->width)*(img->height)){
@@ -212,8 +233,18 @@ Image *apply_reflect(Image *source){
     unsigned h = source->height;
     unsigned w = source->width;
 
+    unsigned progCounter = 0;
+
+    printf("Reflecting Progress: ");
     for(unsigned i=0 ; i < (h-1)/2 ; i++){//Row searcher
         for(unsigned j=0 ; j < (w-1) ; j++){//Column searcher
+
+            //Progress indicator.
+            progCounter++;
+            if(progCounter%(((w*h))/20) == 0 || i==(w*h)){
+            printf("*");
+            fflush(stdout);
+            };
 
             //Find indexes.
             buffIndex = seekIndex(i,j,w);
@@ -227,13 +258,16 @@ Image *apply_reflect(Image *source){
             newImg->pixelArray[buffVerIndex] = buffPix;
         }
     }
+    printf("\nReflecting Complete.\n");
 
     return newImg;
 
 }
 
 /* [ Feature Function ]
-* Prints out all used RGB values.*/
+* Prints out all used RGB values.
+* Success: Returns true.
+* Failure: Returns false. */
 bool apply_hist(Image *source){
 
     if(source == NULL){//Err Msg...
@@ -321,21 +355,46 @@ void printImgDetails(Image* img)
     printf("B: %x\n", img->pixelArray[0].blue);
 }
 
-/*For testing.*/
-int main() {
+/*Execution.*/
+int main(int argc, char *argv[]) {
+        
+    // Check command-line arguments
+    if (argc != 3) {//Err Msg...
+        fprintf(stderr, "Usage: process INPUTFILE OUTPUTFILE\n");
+        return 1;
+    }
 
-    Image* img = NULL;
-    Image* img2 = NULL;
+    // Load the input image
+    Image *in_img = load_image(argv[1]);
+    if (in_img == NULL) {//Err Msg...
+        return 1;
+    }
 
-    //Test loadimg.
-    img = load_image("coffee.hqhex");
-    if(img == NULL)
-        printf("Image empty.\n");
-    else {
-        apply_hist(img);
-    };
+    // Apply the first process to the input image 
+    Image *out_img = apply_reflect(in_img);
+    if (out_img == NULL) {//Err Msg...
+        fprintf(stderr, "First process failed.\n");
+        free_image(&in_img);
+        return 1;
+    }
 
-    free_image(&img);
-    free_image(&img2);
+    // Apply the second process to the output of the first process 
+    if (!apply_hist(out_img)) {//Err Msg...
+        fprintf(stderr, "Second process failed.\n");
+        free_image(&in_img);
+        free_image(&out_img);
+        return 1;
+    }
 
-};
+    // Save the output image.
+    if (!save_image(out_img, argv[2])) {//Err Msg...
+        fprintf(stderr, "Saving image to %s failed.\n", argv[2]);
+        free_image(&in_img);
+        free_image(&out_img);
+        return 1;
+    }
+
+    free_image(&in_img);
+    free_image(&out_img);
+    return 0;
+}

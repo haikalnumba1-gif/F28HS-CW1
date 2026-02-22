@@ -1,4 +1,5 @@
 # Options to pass to the C compiler
+CC = gcc
 CFLAGS = -std=c99 -O2 -Wall -pedantic -g
 
 # List of programs to build
@@ -8,7 +9,7 @@ TARGETS = process
 all: $(TARGETS)
 
 # Build a program
-%: %.c
+$(TARGETS): $(TARGETS).c
 	$(CC) $(CFLAGS) -o $@ $<
 
 # Remove built programs and temporary files
