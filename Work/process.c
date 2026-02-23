@@ -55,16 +55,21 @@ static unsigned seekIndex(unsigned row, unsigned col, unsigned totCol){
 /* [ Base Function ]
 * Free an image from memory.
 * Pass the image as an address. E.g: &img */
-void free_image(Image **img)
+void free_image(Image *img)
 {
-    if(*img == NULL)
+    if(img == NULL){
         printf("No memory to be freed.\n");
-    else{
-        //Free img.
-        free(*img);
-        *img = NULL;
-        printf("Memory freed.\n");
+        return;
     }
+    
+    //free pixelArray.
+    if(img->pixelArray != NULL){//Skip if empty...
+        free(img->pixelArray);
+    }
+
+        //Free img.
+        free(img);
+        printf("Memory freed.\n");
 }
 
 /* [ Base Function ] 
@@ -208,7 +213,22 @@ Image *copy_image(Image *source)
 
     //Allocate memory for copy.
     Image* imgCopy = malloc(sizeof(Image));
-    *imgCopy = *source;
+
+    strcpy(imgCopy->fileType,source->fileType);
+    imgCopy->width = source->width;
+    imgCopy->height = source->height;
+    imgCopy->nvalues = source->nvalues;
+
+    unsigned w = imgCopy->width;
+    unsigned h = imgCopy->height;
+
+    //Allocate for pixelArray.
+    imgCopy->pixelArray = malloc((imgCopy->width)*(imgCopy->height)*sizeof(Pixel));
+
+    for(unsigned i=0 ; i < (w*h) ; i++){
+        imgCopy->pixelArray[i] = source->pixelArray[i];
+    }
+    
     return imgCopy;
 }
 
@@ -374,27 +394,27 @@ int main(int argc, char *argv[]) {
     Image *out_img = apply_reflect(in_img);
     if (out_img == NULL) {//Err Msg...
         fprintf(stderr, "First process failed.\n");
-        free_image(&in_img);
+        free_image(in_img);
         return 1;
     }
 
     // Apply the second process to the output of the first process 
     if (!apply_hist(out_img)) {//Err Msg...
         fprintf(stderr, "Second process failed.\n");
-        free_image(&in_img);
-        free_image(&out_img);
+        free_image(in_img);
+        free_image(out_img);
         return 1;
     }
 
     // Save the output image.
     if (!save_image(out_img, argv[2])) {//Err Msg...
         fprintf(stderr, "Saving image to %s failed.\n", argv[2]);
-        free_image(&in_img);
-        free_image(&out_img);
+        free_image(in_img);
+        free_image(out_img);
         return 1;
     }
 
-    free_image(&in_img);
-    free_image(&out_img);
+    free_image(in_img);
+    free_image(out_img);
     return 0;
 }
