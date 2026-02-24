@@ -21,8 +21,6 @@ typedef struct {
     unsigned height;
     unsigned nvalues;
     Pixel* pixelArray;
-
-    char *fileout;
 } Image;
 
 /*[ Helper Function ]
@@ -70,7 +68,7 @@ void free_image(Image *img)
 
         //Free img.
         free(img);
-        printf("Memory freed.\n");
+        printf("Image freed.\n");
 }
 
 /* [ Base Function ] 
@@ -81,11 +79,12 @@ void free_arr_image(Image **imgArr , unsigned arrSize){
         return;
     }
 
-    for (size_t i = 0; i < arrSize; i++){
+    for (unsigned i=0 ; i<arrSize; i++){
         free_image(imgArr[i]);
     }
 
     free(imgArr);
+    printf("Image array freed.\n");
 }
 
 /* [ Base Function ] 
@@ -441,20 +440,22 @@ int main(int argc, char *argv[]) {
     //Must have odd number of arguments.
     //I.e.: Must have 1 : 1, input : output
     else if(argc > 3){
+
         if(argc%2 == 0){//Err Msg...
-            printf(stderr,"Insufficient argument.\n");
-            printf(stderr,"Please ensure all inputs have an output.\n");
+            printf("Insufficient argument.\n");
+            printf("Please ensure all inputs have an output.\n");
             return 1;
         }
 
         unsigned argInOut = (argc-1)/2; //Amount of inputs/outputs.
 
-        unsigned totOdd[argc]; //All input indexes (Not 0).
-        unsigned totEven[argc]; //All output indexes.
+        unsigned totOdd[argc]; //All arg input indexes (Not 0).
+        unsigned totEven[argc]; //All arg output indexes.
         unsigned oddCounter = 0;
         unsigned evenCounter = 0;
 
-        for(unsigned i=1 ; i<argc-1 ; i++){//Will not take argv[0].
+        //Counting odd and even numbers.
+        for(unsigned i=1 ; i<=argc-1 ; i++){//Will not take argv[0].
             if(i%2 == 0){
                 totEven[evenCounter] = i;
                 evenCounter++;
@@ -473,9 +474,9 @@ int main(int argc, char *argv[]) {
         for(unsigned i=0 ; i<argInOut ; i++){
             inImgArr[i] = load_image(argv[totOdd[i]]);
             if (inImgArr[i] == NULL) {//Err Msg...
-            return 1;
-
-            *inImgArr[i]->fileout = argv[totEven[i]];
+                printf("Load image error.\n");
+                return 1;
+            }
         }
 
         //First process.
@@ -488,28 +489,35 @@ int main(int argc, char *argv[]) {
             }
         }
 
-        //
-        // Apply the second process to the output of the first process 
-        if (!apply_hist(out_img)) {//Err Msg...
-            fprintf(stderr, "Second process failed.\n");
-            free_image(in_img);
-            free_image(out_img);
-            return 1;
+        //Second process.
+        for(unsigned i=0 ; i<argInOut ; i++){
+            if (!apply_hist(outImgArr[i])) {//Err Msg...
+                fprintf(stderr, "Second process failed.\n");
+                free_arr_image(inImgArr,argInOut);
+                free_arr_image(outImgArr,argInOut);
+                return 1;
+            }
         }
 
-        // Save the output image.
-        if (!save_image(out_img, argv[2])) {//Err Msg...
-            fprintf(stderr, "Saving image to %s failed.\n", argv[2]);
-            free_image(in_img);
-            free_image(out_img);
-            return 1;
+        //Save all images.
+        for(unsigned i=0 ; i<argInOut ; i++){
+            if (!save_image(outImgArr[i], argv[totEven[i]])) {//Err Msg...
+                fprintf(stderr, "Saving image to %s failed.\n", argv[totEven[i]]);
+                free_arr_image(inImgArr,argInOut);
+                free_arr_image(outImgArr,argInOut);
+                return 1;
+            }
         }
 
-        free_image(in_img);
-        free_image(out_img);
+        free_arr_image(inImgArr,argInOut);
+        free_arr_image(outImgArr,argInOut);
         return 0;
-    }
-
-    printf(stderr,"Undetected Error.");
+    
+    }//End of case 3.
+    
+    //Err if not entered any case.
+    printf("Undetected Error.\n");
+    printf("No case entered.\n");
     return 1;
-}
+
+}//End of main
