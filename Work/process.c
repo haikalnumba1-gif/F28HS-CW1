@@ -16,11 +16,13 @@ typedef struct {
 * An image loaded from a file. */
 typedef struct {
     //Max file name of 30 characters.
-    char fileType[30];
+    char fileType[100];
     unsigned width;
     unsigned height;
     unsigned nvalues;
     Pixel* pixelArray;
+
+    char *fileout;
 } Image;
 
 /*[ Helper Function ]
@@ -53,8 +55,7 @@ static unsigned seekIndex(unsigned row, unsigned col, unsigned totCol){
 }
 
 /* [ Base Function ]
-* Free an image from memory.
-* Pass the image as an address. E.g: &img */
+* Free an image from memory. */
 void free_image(Image *img)
 {
     if(img == NULL){
@@ -70,6 +71,21 @@ void free_image(Image *img)
         //Free img.
         free(img);
         printf("Memory freed.\n");
+}
+
+/* [ Base Function ] 
+* Frees an array of images. */
+void free_arr_image(Image **imgArr , unsigned arrSize){
+    if (*imgArr == NULL){
+        printf("No memory to be freed.\n");
+        return;
+    }
+
+    for (size_t i = 0; i < arrSize; i++){
+        free_image(imgArr[i]);
+    }
+
+    free(imgArr);
 }
 
 /* [ Base Function ] 
@@ -378,43 +394,122 @@ void printImgDetails(Image* img)
 /*Execution.*/
 int main(int argc, char *argv[]) {
         
-    // Check command-line arguments
-    if (argc != 3) {//Err Msg...
+    /*Case 1: Insufficient Arguments.*/
+    if (argc < 3) {//Err Msg...
         fprintf(stderr, "Usage: process INPUTFILE OUTPUTFILE\n");
         return 1;
     }
 
-    // Load the input image
-    Image *in_img = load_image(argv[1]);
-    if (in_img == NULL) {//Err Msg...
-        return 1;
-    }
+    /*Case 2: 1 Input, 1 Output.*/
+    else if(argc == 3) {
+        // Load the input image
+        Image *in_img = load_image(argv[1]);
+        if (in_img == NULL) {//Err Msg...
+            return 1;
+        }
 
-    // Apply the first process to the input image 
-    Image *out_img = apply_reflect(in_img);
-    if (out_img == NULL) {//Err Msg...
-        fprintf(stderr, "First process failed.\n");
-        free_image(in_img);
-        return 1;
-    }
+        // Apply the first process to the input image 
+        Image *out_img = apply_reflect(in_img);
+        if (out_img == NULL) {//Err Msg...
+            fprintf(stderr, "First process failed.\n");
+            free_image(in_img);
+            return 1;
+        }
 
-    // Apply the second process to the output of the first process 
-    if (!apply_hist(out_img)) {//Err Msg...
-        fprintf(stderr, "Second process failed.\n");
+        // Apply the second process to the output of the first process 
+        if (!apply_hist(out_img)) {//Err Msg...
+            fprintf(stderr, "Second process failed.\n");
+            free_image(in_img);
+            free_image(out_img);
+            return 1;
+        }
+
+        // Save the output image.
+        if (!save_image(out_img, argv[2])) {//Err Msg...
+            fprintf(stderr, "Saving image to %s failed.\n", argv[2]);
+            free_image(in_img);
+            free_image(out_img);
+            return 1;
+        }
+
         free_image(in_img);
         free_image(out_img);
-        return 1;
+        return 0;
     }
 
-    // Save the output image.
-    if (!save_image(out_img, argv[2])) {//Err Msg...
-        fprintf(stderr, "Saving image to %s failed.\n", argv[2]);
+    /*Case 3: Multiple inputs and outputs.*/
+    //Must have odd number of arguments.
+    //I.e.: Must have 1 : 1, input : output
+    else if(argc > 3){
+        if(argc%2 == 0){//Err Msg...
+            printf(stderr,"Insufficient argument.\n");
+            printf(stderr,"Please ensure all inputs have an output.\n");
+            return 1;
+        }
+
+        unsigned argInOut = (argc-1)/2; //Amount of inputs/outputs.
+
+        unsigned totOdd[argc]; //All input indexes (Not 0).
+        unsigned totEven[argc]; //All output indexes.
+        unsigned oddCounter = 0;
+        unsigned evenCounter = 0;
+
+        for(unsigned i=1 ; i<argc-1 ; i++){//Will not take argv[0].
+            if(i%2 == 0){
+                totEven[evenCounter] = i;
+                evenCounter++;
+            }
+            else{
+                totOdd[oddCounter] = i;
+                oddCounter++;
+            }
+        }
+
+        //Allocate Image array.
+        Image **inImgArr = malloc(argInOut * sizeof(Image));
+        Image **outImgArr = malloc(argInOut * sizeof(Image));
+
+        //Load all images.
+        for(unsigned i=0 ; i<argInOut ; i++){
+            inImgArr[i] = load_image(argv[totOdd[i]]);
+            if (inImgArr[i] == NULL) {//Err Msg...
+            return 1;
+
+            *inImgArr[i]->fileout = argv[totEven[i]];
+        }
+
+        //First process.
+        for(unsigned i=0 ; i<argInOut ; i++){
+            outImgArr[i] = apply_reflect(inImgArr[i]);
+            if (outImgArr[i] == NULL) {//Err Msg...
+                fprintf(stderr, "First process failed.\n");
+                free_arr_image(inImgArr,argInOut);
+                return 1;
+            }
+        }
+
+        //
+        // Apply the second process to the output of the first process 
+        if (!apply_hist(out_img)) {//Err Msg...
+            fprintf(stderr, "Second process failed.\n");
+            free_image(in_img);
+            free_image(out_img);
+            return 1;
+        }
+
+        // Save the output image.
+        if (!save_image(out_img, argv[2])) {//Err Msg...
+            fprintf(stderr, "Saving image to %s failed.\n", argv[2]);
+            free_image(in_img);
+            free_image(out_img);
+            return 1;
+        }
+
         free_image(in_img);
         free_image(out_img);
-        return 1;
+        return 0;
     }
 
-    free_image(in_img);
-    free_image(out_img);
-    return 0;
+    printf(stderr,"Undetected Error.");
+    return 1;
 }

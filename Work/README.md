@@ -8,7 +8,7 @@ To remove built program:
 >> CMD: make clean
 
 To run program:
->> CMD: sudo ./process FILEIN FILEOUT
+>> CMD: sudo ./process FILEIN FILEOUT [FILEIN] [FILEOUT] ...
 
 ( FILEIN ) 
 - Mandatory - 
@@ -17,6 +17,17 @@ Must already exist.
 
 ( FILEOUT ) 
 - Mandatory - 
+The output filename. 
+If exists: Overried file.
+If not exists: Create file.
+
+( [FILEIN] ) 
+- Optional - 
+The input filename.
+Must already exist.
+
+( [FILEOUT] ) 
+- Optional - 
 The output filename. 
 If exists: Overried file.
 If not exists: Create file.
